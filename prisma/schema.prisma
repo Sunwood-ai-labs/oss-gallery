@@ -78,6 +78,7 @@ model Project {
   clicks      Int        @default(0)
   links       Link[]
   bookmarkers Bookmark[]
+  clickEvents ClickEvent[]
 
   users ProjectUser[]
 
@@ -112,8 +113,6 @@ model Bookmark {
 
 enum LinkType {
   GITHUB
-  TWITTER
-  LINKEDIN
   WEBSITE
 }
 
@@ -121,11 +120,29 @@ model Link {
   id        String   @id @default(cuid())
   type      LinkType
   url       String   @unique
-  shortLink String   @unique
   order     Int      @default(0)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
+  clickEvents ClickEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ClickEvent {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId    String
+  userAgent String?
+  referer   String?
+  ip        String?
+  country   String?
+  
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([linkId])
+  @@index([createdAt])
 }
