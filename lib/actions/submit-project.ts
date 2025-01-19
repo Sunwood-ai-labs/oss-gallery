@@ -1,12 +1,9 @@
-"use server";
-
-import { PROJECT_GRADIENTS } from "@/components/projects/project-constants";
-import { shortenAndCreateLink } from "@/lib/dub";
-import { getRepo } from "@/lib/github";
-import prisma from "@/lib/prisma";
+import { PROJECT_GRADIENTS } from "../../components/projects/project-constants";
+import { createProjectLink } from "../urls";
+import { getRepo } from "../github";
+import prisma from "../prisma";
 import { getUrlFromString, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import typesense from "../typesense";
 import { authUser } from "./auth";
 
 export async function submitProject(_prevState: any, data: FormData) {
@@ -58,23 +55,19 @@ export async function submitProject(_prevState: any, data: FormData) {
   });
 
   await Promise.all([
-    shortenAndCreateLink({
+    // GitHubリンクの作成
+    createProjectLink({
       url: github,
       type: "GITHUB",
       projectId: project.id,
     }),
+    // Websiteリンクの作成（存在する場合）
     githubData.homepage &&
-      shortenAndCreateLink({
+      createProjectLink({
         url: githubData.homepage,
         type: "WEBSITE",
         projectId: project.id,
       }),
-    typesense().collections("projects").documents().create({
-      id: project.id,
-      name: project.name,
-      description: project.description,
-      slug: project.slug,
-    }),
   ]);
 
   return { redirect: `/projects/${project.slug}` };
