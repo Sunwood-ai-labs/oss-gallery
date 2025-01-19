@@ -1,4 +1,0 @@
-Sitemap: https://oss.gallery/sitemap.xml
-
-User-agent: *
-Disallow: /api

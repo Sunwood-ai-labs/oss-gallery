@@ -1,26 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-  experimental: {
-    ppr: true,
-  },
   images: {
-    unoptimized: true,
-  },
-  async redirects() {
-    return [
+    remotePatterns: [
       {
-        source: "/github",
-        destination: "https://github.com/dubinc/oss-gallery",
-        permanent: false,
+        protocol: 'https',
+        hostname: 'assets.vercel.com',
       },
       {
-        source: "/projects",
-        destination: "/",
-        permanent: false,
+        protocol: 'https',
+        hostname: 'reactjs.org',
       },
-    ];
+      {
+        protocol: 'https',
+        hostname: 'www.typescriptlang.org',
+      },
+    ],
   },
 };
 

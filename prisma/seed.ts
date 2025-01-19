@@ -1,105 +1,56 @@
-import { LinkType, PrismaClient } from '@prisma/client';
-
-import * as data from './data';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const projects = [
+  {
+    name: "Next.js",
+    description: "The React Framework for the Web",
+    url: "https://github.com/vercel/next.js",
+    logo: "https://assets.vercel.com/image/upload/v1662130559/nextjs/icon.png",
+    stars: 114000,
+    gradient: "from-purple-100 via-violet-50 to-blue-100"
+  },
+  {
+    name: "React",
+    description: "The library for web and native user interfaces",
+    url: "https://github.com/facebook/react",
+    logo: "https://reactjs.org/favicon.ico",
+    stars: 215000,
+    gradient: "from-green-100 via-green-50 to-blue-100"
+  },
+  {
+    name: "TypeScript",
+    description: "JavaScript with syntax for types",
+    url: "https://github.com/microsoft/TypeScript",
+    logo: "https://www.typescriptlang.org/favicon.ico",
+    stars: 94000,
+    gradient: "from-blue-100 via-blue-50 to-cyan-100"
+  }
+];
+
 async function main() {
-  console.log("Seeding Database");
+  console.log("Seeding database...");
 
-  console.log("Seeding User");
+  // データベースをクリア
+  await prisma.clickEvent.deleteMany();
+  await prisma.project.deleteMany();
 
-  const dubInc = await prisma.user.upsert({
-    where: { email: 'dubinc@dub.co' },
-    update: {},
-    create: {
-      email: 'support@dub.co',
-      name: 'Dub.co',
-      username: "dubinc",
-      emailVerified: new Date(),
-      image: "https://avatars.githubusercontent.com/u/153106492?s=200&v=4",
-    },
-  });
-
-  console.log("User Seeded");
-
-  console.log("Seeding Projects");
-
-  const seedProjects = [...data.projects];
-
-  while (seedProjects.length) {
-    console.log(`Remaning ${seedProjects.length} projects`)
-    const projects = seedProjects.splice(0, 8);
-
-    const results = await Promise.allSettled(
-      projects.map(async (project) => {
-        const existingProject = await prisma.project.findUnique({
-          where: {
-            slug: project.slug
-          }
-        });
-
-        if (existingProject) {
-          return existingProject;
-        }
-
-        const links: { type: LinkType, shortLink: string, url: string }[] = []
-
-        if (!!project.githubUrl) {
-          links.push({
-            type: "GITHUB",
-            shortLink: project.githubUrl,
-            url: project.githubUrl
-          })
-        }
-
-        if (!!project.websiteUrl) {
-          links.push({
-            type: "WEBSITE",
-            shortLink: project.websiteUrl,
-            url: project.websiteUrl
-          })
-        }
-
-        const { githubUrl, websiteUrl, ...projectInsertData } = project;
-        const createdProject = await prisma.project.create({
-          data: {
-            ...projectInsertData,
-            users: {
-              create: {
-                role: "Seed Submitter",
-                userId: dubInc.id
-              }
-            },
-            links: {
-              createMany: {
-                data: links
-              }
-            }
-          }
-        });
-
-        return createdProject;
-      })
-    );
-
-    const errors = results.filter(result => result.status === "rejected");
-
-    if (errors.length) {
-      console.log(errors);
-    }
+  // プロジェクトを作成
+  for (const project of projects) {
+    await prisma.project.create({
+      data: project,
+    });
   }
 
-  console.log("Projects Seeded");
+  console.log("Database seeded successfully");
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
