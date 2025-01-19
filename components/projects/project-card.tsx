@@ -1,13 +1,62 @@
 import { cn, nFormatter } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Project, Link } from "@prisma/client";
 import { BadgeCheck, Star } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import NextLink from "next/link";
 import { buttonLinkVariants } from "../ui/button-link";
 
-export default function ProjectCard(project: Project) {
+// クリックイベントを記録する関数
+async function recordClick(projectId: string, linkId: string) {
+  try {
+    await fetch("/api/click", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectId, linkId }),
+    });
+  } catch (error) {
+    console.error("Failed to record click:", error);
+  }
+}
+
+// プロジェクトリンクコンポーネント
+function ProjectLink({ 
+  href, 
+  projectId, 
+  linkId, 
+  children 
+}: { 
+  href: string;
+  projectId: string;
+  linkId: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Link
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => {
+        recordClick(projectId, linkId);
+      }}
+      className={buttonLinkVariants({ variant: "secondary" })}
+    >
+      {children}
+    </a>
+  );
+}
+
+type ProjectWithLinks = Project & {
+  links: Link[];
+};
+
+export default function ProjectCard(project: ProjectWithLinks) {
+  const githubLink = project.links.find((link) => link.type === "GITHUB");
+  const websiteLink = project.links.find((link) => link.type === "WEBSITE");
+
+  return (
+    <NextLink
       href={`/projects/${project.slug}`}
       className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-transform will-change-transform hover:-translate-y-0.5 hover:shadow-xl"
     >
@@ -25,9 +74,26 @@ export default function ProjectCard(project: Project) {
           height={100}
           className="h-16 w-16 rounded-full bg-white p-2"
         />
-        <div className={buttonLinkVariants({ variant: "secondary" })}>
-          <Star className="h-4 w-4" />
-          <p className="text-sm">{nFormatter(project.stars, { full: true })}</p>
+        <div className="flex items-center space-x-2">
+          {githubLink && (
+            <ProjectLink
+              href={githubLink.url}
+              projectId={project.id}
+              linkId={githubLink.id}
+            >
+              <Star className="h-4 w-4" />
+              <p className="text-sm">{nFormatter(project.stars)}</p>
+            </ProjectLink>
+          )}
+          {websiteLink && (
+            <ProjectLink
+              href={websiteLink.url}
+              projectId={project.id}
+              linkId={websiteLink.id}
+            >
+              <p className="text-sm">Website</p>
+            </ProjectLink>
+          )}
         </div>
       </div>
       <div className="p-4">
@@ -41,6 +107,6 @@ export default function ProjectCard(project: Project) {
           {project.description}
         </p>
       </div>
-    </Link>
+    </NextLink>
   );
 }
