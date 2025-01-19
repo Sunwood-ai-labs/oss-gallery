@@ -1,42 +1,45 @@
-import { recordClickEvent } from "../../../lib/urls";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../lib/prisma";
 
+interface ClickRequest {
+  projectId: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { projectId, linkId } = await req.json();
+    const { projectId } = await req.json() as ClickRequest;
 
-    // プロジェクトとリンクの存在確認
-    const [project, link] = await Promise.all([
-      prisma.project.findUnique({
-        where: { id: projectId },
-      }),
-      prisma.link.findUnique({
-        where: { id: linkId },
-      }),
-    ]);
+    // プロジェクトの存在確認
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
 
-    if (!project || !link) {
+    if (!project) {
       return NextResponse.json(
-        { error: "Project or Link not found" },
+        { error: "Project not found" },
         { status: 404 }
       );
     }
 
-    // プロジェクトとリンクの関連性を確認
-    if (link.projectId !== projectId) {
-      return NextResponse.json(
-        { error: "Invalid project and link combination" },
-        { status: 400 }
-      );
-    }
-
     // クリックイベントを記録
-    const clickEvent = await recordClickEvent({
-      projectId,
-      linkId,
-      req,
-    });
+    const [clickEvent] = await Promise.all([
+      prisma.clickEvent.create({
+        data: {
+          projectId,
+          userAgent: req.headers.get("user-agent") ?? null,
+          referer: req.headers.get("referer") ?? null,
+          ip: (req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? null)?.toString(),
+        },
+      }),
+      prisma.project.update({
+        where: { id: projectId },
+        data: {
+          clicks: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
 
     return NextResponse.json({ success: true, clickEvent });
   } catch (error) {
