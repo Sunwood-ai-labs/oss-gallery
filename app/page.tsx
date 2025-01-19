@@ -1,51 +1,30 @@
-import ProjectList from "@/components/projects/project-list";
-import SearchBar, { SearchBarPlaceholder } from "@/components/ui/search-bar";
-import { BookOpenText } from "lucide-react";
-import { Suspense } from "react";
+import prisma from "../lib/prisma";
+import ProjectCard from "../components/projects/project-card";
+import { type Project } from "@prisma/client";
 
-export default function Home() {
+export default async function Home() {
+  const projects = await prisma.project.findMany({
+    orderBy: {
+      stars: "desc",
+    },
+  });
+
   return (
-    <>
-      <div className="relative z-10 mx-auto w-full max-w-xl px-5 py-10 xl:px-0">
-        <a
-          href="https://d.to/gallery"
-          target="_blank"
-          className="mx-auto mb-5 flex max-w-fit animate-fade-up items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-gray-100 px-7 py-2 transition-colors hover:bg-gray-50"
-          style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
-        >
-          <BookOpenText className="h-4 w-4 text-gray-600" />
-          <p className="text-sm font-semibold text-gray-600">
-            How we built OSS Gallery
-          </p>
-        </a>
-        <h1
-          className="animate-fade-up bg-gradient-to-br from-black to-stone-500 bg-clip-text text-center font-display text-4xl font-bold tracking-[-0.02em] text-transparent opacity-0 drop-shadow-sm [text-wrap:balance] md:text-6xl md:leading-[1.1]"
-          style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-        >
-          Discover the best open-source projects
+    <main className="mx-auto max-w-screen-xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+          OSS Gallery
         </h1>
-        <p
-          className="mt-6 animate-fade-up text-center text-gray-500 opacity-0 [text-wrap:balance] md:text-xl"
-          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
-        >
-          A crowdsourced list of the best open-source projects on the internet.
+        <p className="mt-4 text-lg text-gray-500">
+          オープンソースプロジェクトのショーケース
         </p>
-        <div
-          className="mx-auto mt-6 flex animate-fade-up items-center justify-center space-x-5 opacity-0"
-          style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
-        >
-          <Suspense fallback={<SearchBarPlaceholder />}>
-            <SearchBar />
-          </Suspense>
-        </div>
       </div>
-
-      <div
-        className="animate-fade-up opacity-0"
-        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
-      >
-        <ProjectList />
+      
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {projects.map((project) => (
+          <ProjectCard key={project.id} {...project} />
+        ))}
       </div>
-    </>
+    </main>
   );
 }

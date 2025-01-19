@@ -1,12 +1,10 @@
-import Footer from "@/components/layout/footer";
-import Nav from "@/components/layout/nav";
-import { constructMetadata } from "@/lib/utils";
-import { cn } from "@dub/utils";
-import { inter, sfPro } from "./fonts";
+import React from "react";
 import "./globals.css";
-import Providers from "./providers";
 
-export const metadata = constructMetadata();
+export const metadata = {
+  title: "OSS Gallery",
+  description: "オープンソースプロジェクトのショーケース",
+};
 
 export default function RootLayout({
   children,
@@ -14,19 +12,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn(sfPro.variable, inter.variable)}>
-      <body>
-        <Providers>
-          <Nav />
-          {/* <ProductHuntPopup /> */}
-          <div className="w-full bg-gradient-to-br from-indigo-50 via-white to-cyan-100 py-16">
-            <div className="mx-auto min-h-screen w-full max-w-screen-md">
-              {children}
-            </div>
-          </div>
-          <Footer />
-        </Providers>
-      </body>
+    <html lang="ja">
+      <head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+      </head>
+      <body className="min-h-screen">{children}</body>
     </html>
   );
 }
