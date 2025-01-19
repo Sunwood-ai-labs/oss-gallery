@@ -1,39 +1,112 @@
-<a href="https://oss.gallery">
-  <img alt="OSS Gallery" src="https://raw.githubusercontent.com/dubinc/oss-gallery/main/public/thumbnail.jpg" />
-</a>
+# 🌟 OSS Gallery
 
-<h3 align="center">OSS Gallery</h3>
+オープンソースプロジェクトを紹介するシンプルなギャラリーアプリケーション
 
-<p align="center">
-    A crowdsourced list of the best open-source projects on the internet.
-    <br />
-    <a href="https://dub.co/blog/product-discovery-platform"><strong>Learn how it's built »</strong></a>
-    <br />
-    <br />
-    <a href="#introduction"><strong>Introduction</strong></a> ·
-    <a href="#tech-stack"><strong>Tech Stack</strong></a>
-</p>
+## 📝 概要
 
-<p align="center">
-  <a href="https://twitter.com/dubdotco">
-    <img src="https://img.shields.io/twitter/follow/dubdotco?style=flat&label=%40dubdotco&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
-  </a>
-  <a href="https://news.ycombinator.com/item?id=40146998"><img src="https://img.shields.io/badge/Hacker%20News-125-%23FF6600" alt="Hacker News"></a>
-</p>
+このアプリケーションは、素晴らしいオープンソースプロジェクトを紹介するためのギャラリーです。
+シンプルな設計で、プロジェクトの一覧表示とクリック数の追跡機能を提供します。
 
-<br/>
+## 🚀 機能
 
-## Introduction
+- ✨ プロジェクト一覧の表示
+- 🔗 GitHubへの直接リンク
+- 📊 クリック数の追跡
+- 🎨 グラデーションを用いた美しいUI
 
-[OSS Gallery](https://oss.gallery) is a crowdsourced list of the best open-source projects on the internet.
+## 🛠️ 動作環境
 
-It uses the [Dub.co API](https://dub.co/docs/api-reference/introduction) to create short links for each project page + display real-time click analytics for them.
+- 💻 Node.js 18以上
+- 🗃️ PostgreSQL 12以上
 
-<img width="1062" alt="CleanShot 2024-04-24 at 20 15 09@2x" src="https://github.com/dubinc/oss-gallery/assets/28986134/7d2ff6e6-cdb2-4818-88f9-ce3e6518c09d">
+## 🔧 セットアップ手順
 
-## Tech Stack
+### 1. データベースの準備
 
-- Next.js Server Actions + Form Actions (zero API routes)
-- Dub [TypeScript SDK](https://github.com/dubinc/dub-node)
-- Tremor for charts
-- Vercel Postgres + deployment
+PostgreSQLをインストールし、新しいデータベースを作成します：
+
+```sql
+CREATE DATABASE oss_gallery;
+```
+
+### 2. プロジェクトのセットアップ
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/yourusername/oss-gallery.git
+cd oss-gallery
+
+# 依存関係のインストール
+npm install
+
+# 環境変数の設定
+# .envファイルを作成し、以下の内容を設定：
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/oss_gallery"
+
+# データベースのマイグレーションとシード
+npm run db:generate
+npm run db:push
+npm run db:seed
+```
+
+### 3. アプリケーションの起動
+
+```bash
+# 開発サーバーの起動
+npm run dev
+```
+
+ブラウザで http://localhost:3000 を開いてアプリケーションにアクセスできます。
+
+## 📈 使い方
+
+1. トップページでプロジェクト一覧を確認
+2. 興味のあるプロジェクトをクリック
+3. GitHubページに自動的に遷移
+
+## 🔍 開発者向け情報
+
+### プロジェクトの追加方法
+
+`prisma/seed.ts`を編集してプロジェクトを追加できます：
+
+```typescript
+{
+  name: "プロジェクト名",
+  description: "プロジェクトの説明",
+  url: "GitHubのURL",
+  logo: "ロゴ画像のURL",
+  stars: スター数,
+  gradient: "グラデーション設定"
+}
+```
+
+### ディレクトリ構造
+
+```
+oss-gallery/
+├── app/                 # Next.js アプリケーションコード
+│   ├── api/            # APIエンドポイント
+│   └── page.tsx        # メインページ
+├── components/         # Reactコンポーネント
+├── prisma/            # データベース関連
+└── public/            # 静的ファイル
+```
+
+## 🐛 トラブルシューティング
+
+### データベース接続エラー
+- PostgreSQLが起動していることを確認
+- `.env`の接続情報が正しいことを確認
+
+### ビルドエラー
+- Node.jsのバージョンを確認
+- `npm install`を再実行
+
+## 📝 ライセンス
+
+MITライセンスで提供されています。
+
+---
+
+詳しい情報や更新については、[GitHubリポジトリ](https://github.com/yourusername/oss-gallery)をご覧ください。
