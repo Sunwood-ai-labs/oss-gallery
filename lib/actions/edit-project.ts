@@ -1,8 +1,6 @@
-"use server";
-
-import prisma from "@/lib/prisma";
+import prisma from "../prisma";
 import { ZodError } from "zod";
-import { editShortLink } from "../dub";
+import { updateProjectLink } from "../urls";
 import { getRepo } from "../github";
 import typesense from "../typesense";
 import { authProject } from "./auth";
@@ -54,17 +52,30 @@ export async function editProject(
         ]);
       }
 
-      await editShortLink({
-        link: props.githubLink,
-        newUrl: github,
+      await updateProjectLink({
+        id: props.githubLink.id,
+        url: github,
       });
     }
 
-    if (props.websiteLink?.url !== website) {
-      await editShortLink({
-        link: props.websiteLink,
-        newUrl: website,
-      });
+    if (website && props.websiteLink?.url !== website) {
+      // サイトのURLが変更された場合
+      if (props.websiteLink) {
+        // 既存のWebsiteリンクを更新
+        await updateProjectLink({
+          id: props.websiteLink.id,
+          url: website,
+        });
+      } else {
+        // 新しいWebsiteリンクを作成
+        await prisma.link.create({
+          data: {
+            type: "WEBSITE",
+            url: website,
+            projectId,
+          },
+        });
+      }
     }
 
     if (props.name !== name || props.description !== description) {

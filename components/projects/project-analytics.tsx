@@ -1,7 +1,6 @@
-import { dub } from "@/lib/dub";
-import { EnrichedProjectProps } from "@/lib/types";
+import { getClickAnalytics } from "../../lib/urls";
+import { EnrichedProjectProps } from "../../lib/types";
 import { LoadingSpinner } from "@dub/ui";
-import { AnalyticsTimeseries } from "dub/dist/commonjs/models/components";
 import { Suspense } from "react";
 import ProjectAnalyticsClient from "./project-analytics-client";
 
@@ -24,60 +23,66 @@ async function ProjectAnalyticsRSC({
 }) {
   const { links } = project;
 
-  // if project created less than 3 days ago, it's a newly added project
+  // プロジェクトが作成されて3日以内かどうかをチェック
   const newlyAddedProject =
     new Date(project.createdAt).getTime() >
     Date.now() - 3 * 24 * 60 * 60 * 1000;
 
-  console.log("Refreshing analytics data");
+  // クリック分析データの取得
+  const endDate = new Date();
+  const startDate = new Date();
+  if (newlyAddedProject) {
+    startDate.setDate(startDate.getDate() - 3); // 3日前から
+  } else {
+    startDate.setDate(startDate.getDate() - 30); // 30日前から
+  }
 
-  const analytics = await Promise.all(
-    links
-      .sort(
-        // show GITHUB first, then WEBSITE
-        (a, _) => (a.type === "GITHUB" ? -1 : 1),
-      )
-      .map(async (link) => {
-        return (await dub.analytics
-          .retrieve({
-            groupBy: "timeseries",
-            externalId: `ext_${link.id}`,
-            interval: newlyAddedProject ? "24h" : "30d",
-          })
-          .catch((e) => {
-            console.log("Error fetching analytics for link", link.id, e);
-            return [];
-          })) as AnalyticsTimeseries[];
-      }),
-  );
-
-  const chartData = analytics[0].map((data, i) => {
-    return {
-      start: new Date(data.start).toLocaleDateString(
-        "en-US",
-        newlyAddedProject
-          ? {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-            }
-          : {
-              month: "short",
-              day: "numeric",
-            },
-      ),
-      [links[0].type]: analytics[0][i]?.clicks,
-      ...(links[1] && {
-        [links[1].type]: analytics[1][i]?.clicks,
-      }),
-    };
+  const analytics = await getClickAnalytics({
+    projectId: project.id,
+    startDate,
+    endDate,
+    interval: newlyAddedProject ? "hour" : "day",
   });
+
+  // リンクごとのクリック数を日付でグループ化
+  const clicksByDate = new Map();
+  
+  analytics.forEach((click) => {
+    const dateStr = new Date(click.date).toLocaleDateString(
+      "en-US",
+      newlyAddedProject
+        ? {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+          }
+        : {
+            month: "short",
+            day: "numeric",
+          },
+    );
+
+    if (!clicksByDate.has(dateStr)) {
+      clicksByDate.set(dateStr, {});
+    }
+    
+    const link = links.find(l => l.id === click.linkId);
+    if (link) {
+      clicksByDate.get(dateStr)[link.type] = click.clicks;
+    }
+  });
+
+  // チャートデータの形式に変換
+  const chartData = Array.from(clicksByDate.entries()).map(([date, clicks]) => ({
+    start: date,
+    ...clicks,
+  }));
 
   return (
     <ProjectAnalyticsClient
       chartData={chartData}
-      categories={[links[0].type, links[1] ? links[1].type : undefined]}
+      categories={links.map(l => l.type)}
       startEndOnly={newlyAddedProject}
     />
   );
