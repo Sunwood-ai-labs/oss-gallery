@@ -9,7 +9,7 @@ const projects = [
     url: "https://github.com/vercel/next.js",
     logo: "https://assets.vercel.com/image/upload/v1662130559/nextjs/icon.png",
     stars: 114000,
-    gradient: "from-purple-100 via-violet-50 to-blue-100"
+    gradient: "from-violet-500 via-purple-400 to-indigo-500"
   },
   {
     name: "React",
@@ -17,7 +17,7 @@ const projects = [
     url: "https://github.com/facebook/react",
     logo: "https://reactjs.org/favicon.ico",
     stars: 215000,
-    gradient: "from-green-100 via-green-50 to-blue-100"
+    gradient: "from-sky-400 via-blue-500 to-cyan-400"
   },
   {
     name: "TypeScript",
@@ -25,7 +25,7 @@ const projects = [
     url: "https://github.com/microsoft/TypeScript",
     logo: "https://www.typescriptlang.org/favicon.ico",
     stars: 94000,
-    gradient: "from-blue-100 via-blue-50 to-cyan-100"
+    gradient: "from-blue-500 via-indigo-500 to-purple-500"
   }
 ];
 
