@@ -13,8 +13,10 @@ datasource db {
 model Project {
   id          String      @id @default(cuid())
   name        String
+  slug        String?     @unique
   description String
   logo        String
+  tags        String[]    @default([])
   gradient    String      @default("from-purple-100 via-violet-50 to-blue-100")
   stars       Int         @default(0)
   clicks      Int         @default(0)
@@ -39,4 +41,14 @@ model ClickEvent {
 
   @@index([projectId])
   @@index([createdAt])
+}
+
+// ユーザーのベーシック認証用のモデル
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  password    String
+  name        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
